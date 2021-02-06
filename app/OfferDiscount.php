@@ -12,22 +12,19 @@ class OfferDiscount implements DiscountInterface
         return true;
     }
 
-    public function calulateDiscount($cart) {
+    public function calulateDiscount($cart, $currency) {
         $offers = Offer::select('condition', 'percent', 'price', 'name')
             ->where('active', true)
             ->whereIn('product_id', array_column($cart, 'id'))
             ->join('products', 'products.id', 'offers.product_id')
             ->get();
-        //dd(array_column($cart, 'slug'));
         $discount = 0;
         foreach($offers as $offer) {
-            //dd(json_decode($offer->condition));
             if(empty(array_diff(json_decode($offer->condition), array_column($cart, 'slug')))){
-                $discount += $offer['price'] * $offer['percent'];
-                Log::info($offer['percent'] * 100 .'% off '. $offer['name'] . ': -$' . $discount);
+                $discount += $offer['price'] * $offer['percent'] * $currency->rate;
+                Log::info($offer['percent'] * 100 .'% off '. $offer['name'] . ': -' . $currency->symbol . $discount);
             }
         }
-
         return $discount;
     }
 }

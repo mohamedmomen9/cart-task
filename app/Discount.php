@@ -11,12 +11,12 @@ class Discount implements DiscountInterface
         return true;
     }
 
-    public function calulateDiscount($cart) {
+    public function calulateDiscount($cart, $currency) {
         $discount = 0;
         foreach($cart as $item) {
-            $discount += $item['price'] * $item['discount'];
+            $discount += $item['price'] * $item['discount'] * $currency->rate;
             if($item['discount'] > 0) {
-                Log::info($item['discount'] * 100 .'% off '. $item['name'] . ': -$' . $discount);
+                Log::info($item['discount'] * 100 .'% off '. $item['name'] . ': -' . $currency->symbol . $discount);
             }
         }
         return $discount;
