@@ -6,12 +6,11 @@ use App\Currency;
 use App\Discount;
 use App\OrderItem;
 use App\OfferDiscount;
-use Faker\Factory as Faker;
 
 it('createcart command', function () {
     $this->artisan('createCart --bill-currency=USD t-shirt t-shirt shoes jacket');
-
-    $orderItems = OrderItem::where('order_id', 1)->get();
+    $id = Order::max('id');
+    $orderItems = OrderItem::where('order_id', $id)->get();
     $cart = [];
     $subtotal = 0;
     foreach ($orderItems as $item) {
