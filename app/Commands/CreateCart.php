@@ -2,11 +2,14 @@
 
 namespace App\Commands;
 
+use App\Order;
 use Exception;
 use App\Product;
 use App\Currency;
 use App\Discount;
+use App\OrderItem;
 use App\OfferDiscount;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Console\Scheduling\Schedule;
 use LaravelZero\Framework\Commands\Command;
@@ -45,8 +48,9 @@ class CreateCart extends Command
             $subtotal = $this->calculatePrices($items);
             $taxes = $this->addTaxes($subtotal);
             $discounts = $this->applyDiscouts($products);
-            $total = $subtotal - ($taxes + $discounts);
+            $total = $subtotal + $taxes - $discounts;
             Log::info("Total: " . $this->currency->symbol . $total);
+            $this->storeTransaction($products, $subtotal, $taxes, $discounts, $total, $this->currency->slug);
         }catch(Expection $e) {
             Log::warning($e->getMessage());
         }
@@ -88,7 +92,29 @@ class CreateCart extends Command
         $discount = new Discount();
         $total = $discount->calulateDiscount($items, $this->currency);
         $discount = new OfferDiscount();
-        $total = $discount->calulateDiscount($items, $this->currency);
+        $total += $discount->calulateDiscount($items, $this->currency);
         return $total;
+    }
+
+    protected function storeTransaction($items, $subtotal, $taxes, $discounts, $total, $currency) {
+        DB::transaction(function () use ($items, $subtotal, $taxes, $discounts, $total, $currency) {
+            $order = Order::create(
+                [
+                    'subtotal' => $subtotal,
+                    'taxes' => $taxes,
+                    'discounts' => $discounts,
+                    'total' => $total,
+                    'currency' => $currency
+                ]
+            );
+            foreach($items as $item) {
+                OrderItem::create(
+                    [
+                        'order_id' => $order->id,
+                        'item_id' => $item['id']   
+                    ]
+                );
+            }
+        });
     }
 }

@@ -19,6 +19,7 @@ class CreateOrdersTable extends Migration
             $table->double('taxes');
             $table->double('discounts');
             $table->double('total');
+            $table->string('currency');
             $table->timestamps();
         });
     }
