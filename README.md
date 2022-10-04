@@ -2,8 +2,8 @@
 
 ## Tools used for Cart
 
--   Laravel zero: it is my first time but I noticed that it is in your stack
--   SQLLite: just to ease the deployment
+-   Laravel zero
+-   SQLLite
 
 ## Running migrations
 
